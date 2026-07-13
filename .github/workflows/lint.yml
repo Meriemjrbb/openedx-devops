@@ -1,0 +1,21 @@
+---
+# WP-06 — CI quality gate: lint Ansible on every push/PR.
+# The deployment workflow (WP-08) will be added once the playbook is validated.
+name: Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  ansible-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run ansible-lint
+        uses: ansible/ansible-lint@v25
+        with:
+          working_directory: ansible
