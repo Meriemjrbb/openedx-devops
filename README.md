@@ -93,10 +93,10 @@ On utilise un GitHub Flow simple : `main` est protégée, chaque évolution pass
 
 ## Pour aller plus loin
 
-- `wbs.md` — le plan de projet détaillé (les douze work packages, le chemin critique, les jalons et les risques).
-- `docs/architecture.md` — la pile logicielle cible, de OpenStack jusqu'à Open edX.
-- `docs/branching-strategy.md` — le détail des branches et des règles CI.
-- `docs/journal.md` — le journal technique (connexion à la VM, mises à jour, installation de Docker, incidents rencontrés).
+- [wbs.md](wbs.md) — le plan de projet détaillé (les douze work packages, le chemin critique, les jalons et les risques).
+- [docs/architecture.md](docs/architecture.md) — la pile logicielle cible, de OpenStack jusqu'à Open edX.
+- [docs/branching-strategy.md](docs/branching-strategy.md) — le détail des branches et des règles CI.
+- [docs/journal.md](docs/journal.md) — le journal technique (connexion à la VM, mises à jour, installation de Docker, incidents rencontrés).
 
 ---
 
