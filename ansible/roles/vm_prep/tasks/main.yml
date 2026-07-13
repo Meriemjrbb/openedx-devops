@@ -1,0 +1,59 @@
+---
+# WP-01 — VM preparation: updates, timezone/locale, base dependencies.
+
+- name: Update apt cache and upgrade all packages
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+    upgrade: dist
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ vm_prep_timezone }}"
+
+- name: Ensure locale exists
+  community.general.locale_gen:
+    name: "{{ vm_prep_locale }}"
+    state: present
+
+- name: Install base dependencies
+  ansible.builtin.apt:
+    name: "{{ vm_prep_packages }}"
+    state: present
+
+- name: Gather resource facts
+  ansible.builtin.setup:
+    gather_subset:
+      - hardware
+
+- name: Verify RAM and disk meet minimum requirements (risk R3)
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['memtotal_mb'] >= vm_prep_min_ram_mb
+      - (ansible_facts['mounts'] | selectattr('mount', 'equalto', '/') | map(attribute='size_available') | first / 1024 / 1024 / 1024) >= vm_prep_min_disk_gb
+    fail_msg: >-
+      VM is under-sized for Open edX
+      (RAM: {{ ansible_facts['memtotal_mb'] }} MB, need {{ vm_prep_min_ram_mb }} MB).
+      See risk R3 in wbs.md.
+    success_msg: "Resources OK: {{ ansible_facts['memtotal_mb'] }} MB RAM"
+
+- name: Check if a reboot is required (risk R8)
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: vm_prep_reboot_required
+
+- name: Reboot to apply kernel updates (disposable VMs only)
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when:
+    - vm_prep_reboot_required.stat.exists
+    - vm_prep_allow_reboot | bool
+
+- name: Warn that a manual reboot is pending
+  ansible.builtin.debug:
+    msg: >-
+      /var/run/reboot-required exists — schedule a reboot
+      (inside tmux, per risk R8 mitigation).
+  when:
+    - vm_prep_reboot_required.stat.exists
+    - not vm_prep_allow_reboot | bool

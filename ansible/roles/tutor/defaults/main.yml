@@ -1,0 +1,11 @@
+---
+# WP-03 — Tutor installed via pipx (isolated), config templated.
+# TODO(Taieb): pin the exact version used during the manual install.
+tutor_pip_spec: "tutor[full]"
+
+# Tutor runs as the unprivileged deploy user (docker group member).
+tutor_user: "{{ ansible_user }}"
+
+tutor_lms_host: local.openedx.test
+tutor_cms_host: studio.local.openedx.test
+tutor_enable_https: false

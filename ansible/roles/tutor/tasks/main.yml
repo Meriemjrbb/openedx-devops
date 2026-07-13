@@ -1,0 +1,62 @@
+---
+# WP-03 — Tutor CLI via pipx + base configuration.
+
+- name: Ensure pipx is installed
+  ansible.builtin.apt:
+    name: pipx
+    state: present
+
+- name: Install Tutor via pipx (isolated environment)
+  become: true
+  become_user: "{{ tutor_user }}"
+  community.general.pipx:
+    name: tutor
+    source: "{{ tutor_pip_spec }}"
+    state: present
+  # In check mode pipx itself may not be installed yet — tolerate that.
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Ensure ~/.local/bin is on the user PATH
+  become: true
+  become_user: "{{ tutor_user }}"
+  ansible.builtin.lineinfile:
+    path: "~/.profile"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    create: true
+    mode: "0644"
+
+- name: Read current Tutor config checksum
+  become: true
+  become_user: "{{ tutor_user }}"
+  ansible.builtin.stat:
+    path: "~/.local/share/tutor/config.yml"
+    checksum_algorithm: sha256
+  register: tutor_config_before
+
+- name: Apply Tutor configuration (LMS/CMS hosts, HTTPS)
+  become: true
+  become_user: "{{ tutor_user }}"
+  ansible.builtin.command:
+    cmd: >-
+      ~/.local/bin/tutor config save
+      --set LMS_HOST={{ tutor_lms_host }}
+      --set CMS_HOST={{ tutor_cms_host }}
+      --set ENABLE_HTTPS={{ tutor_enable_https | bool | lower }}
+  register: tutor_config_save
+  changed_when: false
+
+- name: Read Tutor config checksum after save
+  become: true
+  become_user: "{{ tutor_user }}"
+  ansible.builtin.stat:
+    path: "~/.local/share/tutor/config.yml"
+    checksum_algorithm: sha256
+  register: tutor_config_after
+
+- name: Report configuration change
+  ansible.builtin.debug:
+    msg: "Tutor config.yml updated"
+  changed_when: true
+  when: >-
+    (tutor_config_before.stat.checksum | default('none'))
+    != (tutor_config_after.stat.checksum | default('none'))

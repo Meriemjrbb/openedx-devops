@@ -1,0 +1,56 @@
+---
+# WP-01 — UFW + Fail2Ban.
+# CRITICAL ORDER (risk R1): SSH must be allowed BEFORE ufw is enabled,
+# otherwise we lock ourselves out of the VM.
+
+- name: Install UFW and Fail2Ban
+  ansible.builtin.apt:
+    name:
+      - ufw
+      - fail2ban
+    state: present
+
+- name: Allow SSH before enabling the firewall (risk R1 — do not reorder)
+  community.general.ufw:
+    rule: allow
+    name: OpenSSH
+    comment: "SSH - allowed BEFORE enable"
+
+- name: Allow web ports
+  community.general.ufw:
+    rule: allow
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+    comment: "{{ item.comment }}"
+  loop: "{{ security_ufw_allowed_ports }}"
+
+- name: Enable UFW with default deny incoming
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming
+
+- name: Configure Fail2Ban sshd jail
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.local
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Managed by Ansible — do not edit by hand (WP-01).
+      [DEFAULT]
+      bantime = {{ security_fail2ban_bantime }}
+      findtime = {{ security_fail2ban_findtime }}
+      maxretry = {{ security_fail2ban_maxretry }}
+
+      [sshd]
+      enabled = true
+  notify: Restart fail2ban
+
+- name: Ensure Fail2Ban is enabled and running
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: started
+    enabled: true
+  # In check mode the package may not be installed yet — tolerate that.
+  ignore_errors: "{{ ansible_check_mode }}"

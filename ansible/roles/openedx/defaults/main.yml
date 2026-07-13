@@ -1,0 +1,12 @@
+---
+# WP-04/WP-05 — platform launch + admin account.
+# Launch is gated: it starts 7-8 containers and takes ~15-30 min.
+openedx_launch: false
+
+openedx_user: "{{ ansible_user }}"
+
+# WP-05 — admin account. Password comes from the environment, never the repo
+# (risk R6): export OPENEDX_ADMIN_PASSWORD before running.
+openedx_admin_user: admin
+openedx_admin_email: admin@openedx.local
+openedx_admin_password: "{{ lookup('env', 'OPENEDX_ADMIN_PASSWORD') }}"

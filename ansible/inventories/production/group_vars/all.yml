@@ -1,0 +1,15 @@
+---
+env_name: production
+
+# Never reboot the shared VM automatically — surface the flag instead (risk R8).
+vm_prep_allow_reboot: false
+
+# Tutor/Open edX launch is gated: WP-03/WP-04 belong to Taieb.
+# Flip to true (or run with -e openedx_launch=true) once WP-03 is coordinated.
+openedx_launch: false
+
+# No DNS yet — use the VM public IP directly (Caddy serves it plain HTTP).
+# TODO(Taieb): replace with real domain names once decided (WP-03/WP-04).
+tutor_lms_host: "{{ lookup('env', 'OPENEDX_VM_HOST') }}"
+tutor_cms_host: "studio.{{ lookup('env', 'OPENEDX_VM_HOST') }}.nip.io"
+tutor_enable_https: false

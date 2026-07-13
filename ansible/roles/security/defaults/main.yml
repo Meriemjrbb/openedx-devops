@@ -1,0 +1,9 @@
+---
+# WP-01 — firewall + intrusion prevention.
+security_ufw_allowed_ports:
+  - { port: "80", proto: tcp, comment: "HTTP - Open edX LMS" }
+  - { port: "443", proto: tcp, comment: "HTTPS - Open edX LMS" }
+
+security_fail2ban_bantime: 1h
+security_fail2ban_findtime: 10m
+security_fail2ban_maxretry: 5

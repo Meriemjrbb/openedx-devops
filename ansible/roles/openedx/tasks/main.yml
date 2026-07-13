@@ -1,0 +1,55 @@
+---
+# WP-04 — deploy the full Open edX stack via Tutor.
+# WP-05 — create the admin account.
+# Everything is skipped unless openedx_launch=true (coordinate with Taieb).
+
+- name: Check whether the LMS container is already running
+  become: true
+  become_user: "{{ openedx_user }}"
+  ansible.builtin.command: docker ps --filter name=tutor_local-lms --format '{{ "{{" }}.Names{{ "}}" }}'
+  register: openedx_lms_running
+  changed_when: false
+  when: openedx_launch | bool
+
+- name: Launch Open edX (tutor local launch, non-interactive)
+  become: true
+  become_user: "{{ openedx_user }}"
+  ansible.builtin.command:
+    cmd: ~/.local/bin/tutor local launch --non-interactive
+  register: openedx_launch_result
+  changed_when: true
+  when:
+    - openedx_launch | bool
+    - openedx_lms_running.stdout | default('') | length == 0
+  async: 3600
+  poll: 30
+
+- name: Create Open edX admin account (WP-05)
+  become: true
+  become_user: "{{ openedx_user }}"
+  ansible.builtin.shell:
+    cmd: >-
+      set -o pipefail &&
+      ~/.local/bin/tutor local do createuser
+      --staff --superuser
+      --password "$OPENEDX_ADMIN_PASSWORD"
+      {{ openedx_admin_user }} {{ openedx_admin_email }}
+      && touch ~/.ansible_openedx_admin_created
+    creates: "~/.ansible_openedx_admin_created"
+    executable: /bin/bash
+  environment:
+    OPENEDX_ADMIN_PASSWORD: "{{ openedx_admin_password }}"
+  when:
+    - openedx_launch | bool
+    - openedx_admin_password | length > 0
+
+- name: Smoke test — LMS responds on HTTP
+  ansible.builtin.uri:
+    url: "http://{{ tutor_lms_host }}/heartbeat"
+    status_code: 200
+    timeout: 30
+  retries: 5
+  delay: 15
+  register: openedx_heartbeat
+  until: openedx_heartbeat.status == 200
+  when: openedx_launch | bool

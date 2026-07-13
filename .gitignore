@@ -1,0 +1,36 @@
+# ── Secrets / environment ────────────────────────────────
+.env
+.env.*
+*.pem
+*.key
+id_rsa*
+id_ed25519*
+.vault_pass
+vault-password*
+
+# ── Ansible ──────────────────────────────────────────────
+*.retry
+ansible/collections/
+ansible/.cache/
+
+# ── Vagrant ──────────────────────────────────────────────
+.vagrant/
+*.box
+
+# ── Terraform ────────────────────────────────────────────
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform/
+.terraform.lock.hcl
+terraform/crash.log
+
+# ── Editors / OS ─────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# ── Local session notes (not project deliverables) ───────
+session-*.md

@@ -1,0 +1,21 @@
+---
+# WP-01 — values documented by Mariem in docs/journal.md + course sheet EDX-01.
+vm_prep_timezone: Europe/Paris
+vm_prep_locale: en_US.UTF-8
+
+vm_prep_packages:
+  - curl
+  - git
+  - jq
+  - python3
+  - python3-pip
+  - pipx
+  - unattended-upgrades
+
+# Minimum resources (informational check, does not fail the play — risk R3).
+vm_prep_min_ram_mb: 5500 # real VM has 6 GB
+vm_prep_min_disk_gb: 15 # real VM has 20 GB
+
+# Reboot automatically if a kernel update requires it (risk R8).
+# true only on disposable local VMs — see inventory group_vars.
+vm_prep_allow_reboot: false
