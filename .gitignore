@@ -33,4 +33,5 @@ terraform/crash.log
 .DS_Store
 
 # ── Local session notes (not project deliverables) ───────
+.sessions/
 session-*.md

@@ -1,37 +1,37 @@
-# Branching Strategy
+# Stratégie de branches
 
-## Model
+## Modèle
 
-Simple GitHub Flow — appropriate for a 3-person team and a 5-week project.
+GitHub Flow simple — adapté à une équipe de 3 et un projet de 5 semaines.
 
 ```
-main ────────●───────●───────●──► always deployable
-              \     /
-   feature/x   ●───●   (PR + 1 review)
+main ────────●───────●───────●──► toujours déployable
+               \     /
+    feature/x   ●───●   (PR + 1 revue)
 ```
 
-## Rules
+## Règles
 
-| Rule | Detail |
+| Règle | Détail |
 |---|---|
-| `main` is protected | No direct pushes; PRs only, 1 approving review required |
-| Branch naming | `feature/<topic>`, `fix/<topic>`, `docs/<topic>` |
-| Owner prefix optional | e.g. `feature/ansible-skeleton` (Adrian), `feature/tutor-config` (Taieb) |
-| CI must pass | `ansible-lint` workflow green before merge |
-| Small PRs | One work package (or sub-task) per PR |
-| No secrets in git | `.env`, keys, passwords — ever ([risk R6](../wbs.md)) |
+| `main` est protégée | Pas de push direct ; PR uniquement, 1 revue approbative requise |
+| Nommage des branches | `feature/<sujet>`, `fix/<sujet>`, `docs/<sujet>` |
+| Préfixe owner optionnel | ex. `feature/ansible-skeleton` (Adrian), `feature/tutor-config` (Taieb) |
+| CI doit passer | Le workflow `ansible-lint` doit être vert avant la fusion |
+| PR petites | Un work package (ou sous-tâche) par PR |
+| Aucun secret dans git | `.env`, clés, mots de passe — jamais ([risque R6](../wbs.md)) |
 
-## Mapping to work packages
+## Correspondance avec les work packages
 
-| Branch | WP | Owner |
+| Branche | WP | Responsable |
 |---|---|---|
 | `feature/ansible-skeleton` | WP-06/WP-07 | Adrian |
 | `feature/cicd-pipeline` | WP-08 | Adrian |
 | `docs/architecture` | WP-10 | Taieb |
 
-## Commit style
+## Style des commits
 
-Short imperative subject, reference the WP when relevant:
+Sujet impératif court, référence au WP si pertinent :
 
 ```
 Add UFW + Fail2Ban role (WP-01 encoding)

@@ -66,7 +66,7 @@ docs/           journal technique, architecture cible, stratégie de branches
 wbs.md          Le plan de projet complet (tâches, dépendances, jalons, risques)
 ```
 
-La VM actuelle fournie par OpenStack est modeste (2 vCPU, 6 Go de RAM, 20 Go de disque). Faire tourner les 7–8 conteneurs Open edX dessus tient juste ; un manque de mémoire peut faire planter des services. On garde un œil dessus et on ajoute du swap si besoin.
+La VM actuelle fournie par OpenStack est modeste (2 vCPU, 6 Go de RAM, 20 Go de disque). Un fichier swap de 2 Go a été ajouté comme filet de sécurité mémoire pour les 7–8 conteneurs Open edX. Un miroir Docker (`mirror.gcr.io`) est configuré pour contourner les problèmes de connectivité TCP vers Docker Hub depuis l'infrastructure OpenStack.
 
 ## Déployer avec Ansible
 
