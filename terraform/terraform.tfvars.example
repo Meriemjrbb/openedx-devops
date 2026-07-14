@@ -1,0 +1,8 @@
+# OpenStack credentials (set your own)
+# os_password = "your-openstack-password"
+
+image_name       = "Ubuntu-22.04"
+flavor_name      = "m1.small-custom"
+network_name     = "reseau-ete-2026"
+routed_subnet_id = "<your-subnet-id>"
+admin_ssh_keys   = ["<your-ssh-public-key>"]

@@ -37,6 +37,46 @@
       See risk R3 in wbs.md.
     success_msg: "Resources OK: {{ ansible_facts['memtotal_mb'] }} MB RAM"
 
+- name: Create swap file (risk R3 — memory safety net for Tutor)
+  ansible.builtin.command:
+    cmd: fallocate -l {{ vm_prep_swap_size_mb }}M {{ vm_prep_swap_path }}
+    creates: "{{ vm_prep_swap_path }}"
+  register: vm_prep_swap_created
+
+- name: Set swap file permissions
+  ansible.builtin.file:
+    path: "{{ vm_prep_swap_path }}"
+    mode: "0600"
+    owner: root
+    group: root
+  when: not ansible_check_mode
+
+- name: Format swap file
+  ansible.builtin.command:
+    cmd: mkswap {{ vm_prep_swap_path }}
+  when:
+    - vm_prep_swap_created is changed
+    - not ansible_check_mode
+
+- name: Enable swap file
+  ansible.builtin.command:
+    cmd: swapon {{ vm_prep_swap_path }}
+  when:
+    - vm_prep_swap_created is changed
+    - not ansible_check_mode
+
+- name: Persist swap in /etc/fstab
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "{{ vm_prep_swap_path }} none swap sw 0 0"
+    state: present
+
+- name: Enable and start unattended-upgrades
+  ansible.builtin.systemd:
+    name: unattended-upgrades
+    state: started
+    enabled: true
+
 - name: Check if a reboot is required (risk R8)
   ansible.builtin.stat:
     path: /var/run/reboot-required
