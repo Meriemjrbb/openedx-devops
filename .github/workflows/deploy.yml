@@ -1,0 +1,51 @@
+---
+# WP-08 — CI/CD: automated Ansible deployment on push to main.
+# Requires these GitHub Secrets:
+#   OPENEDX_VM_HOST  — VM public IP or FQDN
+#   OPENEDX_VM_USER  — SSH user (default: ubuntu)
+#   OPENEDX_SSH_KEY  — SSH private key (Ed25519 or RSA)
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    env:
+      OPENEDX_VM_HOST: ${{ secrets.OPENEDX_VM_HOST }}
+      OPENEDX_VM_USER: ${{ secrets.OPENEDX_VM_USER }}
+      OPENEDX_SSH_KEY: ~/.ssh/openedx_ci_key
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install SSH key
+        run: |
+          install -d -m 700 ~/.ssh
+          echo "$SSH_KEY" > ~/.ssh/openedx_ci_key
+          chmod 600 ~/.ssh/openedx_ci_key
+        env:
+          SSH_KEY: ${{ secrets.OPENEDX_SSH_KEY }}
+
+      - name: Install Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install ansible
+
+      - name: Lint playbooks
+        uses: ansible/ansible-lint@v25
+        with:
+          working_directory: ansible
+
+      - name: Install collections
+        working-directory: ansible
+        run: ansible-galaxy collection install -r requirements.yml
+
+      - name: Run playbook
+        working-directory: ansible
+        run: ansible-playbook site.yml --diff

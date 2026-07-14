@@ -1,6 +1,6 @@
 ---
 # WP-06 — CI quality gate: lint Ansible on every push/PR.
-# The deployment workflow (WP-08) will be added once the playbook is validated.
+# The deployment workflow lives in deploy.yml (WP-08).
 name: Lint
 
 on:
