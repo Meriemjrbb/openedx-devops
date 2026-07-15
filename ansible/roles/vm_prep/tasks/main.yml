@@ -37,11 +37,16 @@
       See risk R3 in wbs.md.
     success_msg: "Resources OK: {{ ansible_facts['memtotal_mb'] }} MB RAM"
 
+- name: Check if swap file already exists
+  ansible.builtin.stat:
+    path: "{{ vm_prep_swap_path }}"
+  register: vm_prep_swap_stat
+
 - name: Create swap file (risk R3 — memory safety net for Tutor)
   ansible.builtin.command:
     cmd: fallocate -l {{ vm_prep_swap_size_mb }}M {{ vm_prep_swap_path }}
     creates: "{{ vm_prep_swap_path }}"
-  register: vm_prep_swap_created
+  when: not vm_prep_swap_stat.stat.exists
 
 - name: Set swap file permissions
   ansible.builtin.file:
@@ -49,21 +54,32 @@
     mode: "0600"
     owner: root
     group: root
-  when: not ansible_check_mode
+  when: vm_prep_swap_stat.stat.exists or not ansible_check_mode
+
+- name: Check if swap file is already formatted
+  ansible.builtin.command:
+    cmd: blkid {{ vm_prep_swap_path }}
+  register: vm_prep_swap_blkid
+  changed_when: false
+  failed_when: false
 
 - name: Format swap file
   ansible.builtin.command:
     cmd: mkswap {{ vm_prep_swap_path }}
-  when:
-    - vm_prep_swap_created is changed
-    - not ansible_check_mode
+  when: vm_prep_swap_blkid.rc != 0
+  changed_when: true
+
+- name: Check if swap is already active
+  ansible.builtin.command:
+    cmd: swapon --show --noheadings
+  register: vm_prep_swapon_check
+  changed_when: false
 
 - name: Enable swap file
   ansible.builtin.command:
     cmd: swapon {{ vm_prep_swap_path }}
-  when:
-    - vm_prep_swap_created is changed
-    - not ansible_check_mode
+  when: vm_prep_swap_path not in vm_prep_swapon_check.stdout
+  changed_when: true
 
 - name: Persist swap in /etc/fstab
   ansible.builtin.lineinfile:

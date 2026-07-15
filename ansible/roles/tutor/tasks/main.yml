@@ -6,6 +6,11 @@
     name: pipx
     state: present
 
+- name: Read pipx version
+  ansible.builtin.command: pipx --version
+  register: tutor_pipx_version
+  changed_when: false
+
 - name: Install Tutor via pipx (isolated environment)
   become: true
   become_user: "{{ tutor_user }}"
@@ -13,8 +18,19 @@
     name: tutor
     source: "{{ tutor_pip_spec }}"
     state: present
-  # In check mode pipx itself may not be installed yet — tolerate that.
+  environment:
+    PIPX_HOME: "{{ ansible_user_dir }}/.local/share/pipx"
+    PIPX_BIN_DIR: "{{ ansible_user_dir }}/.local/bin"
+  when: tutor_pipx_version.stdout is version('1.7.0', '>=')
   ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Install Tutor via pipx command fallback (system pipx < 1.7.0)
+  become: true
+  become_user: "{{ tutor_user }}"
+  ansible.builtin.command:
+    cmd: pipx install "{{ tutor_pip_spec }}"
+    creates: "~/.local/share/pipx/venvs/tutor"
+  when: tutor_pipx_version.stdout is version('1.7.0', '<')
 
 - name: Ensure ~/.local/bin is on the user PATH
   become: true

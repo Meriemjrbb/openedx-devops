@@ -12,20 +12,22 @@
       - python3-debian
     state: present
 
-# Remove legacy deb-style repo if it exists (get.docker.com creates both).
-- name: Remove legacy Docker apt repo (deb822 is the source of truth)
+# The manual install (get.docker.com) left a legacy single-line docker.list.
+# Remove it before adding the modern deb822 format to avoid duplicates.
+- name: Remove legacy Docker apt repository (single-line format)
   ansible.builtin.file:
     path: /etc/apt/sources.list.d/docker.list
     state: absent
-  register: docker_legacy_removed
 
-- name: Update apt cache after removing legacy repo
-  ansible.builtin.apt:
-    update_cache: true
-  when: docker_legacy_removed is changed
+# The VM has documented intermittent DNS/TCP issues (docs/journal.md).
+# Check whether the repo is already in place before reaching out to
+# download.docker.com — keeps the role idempotent without requiring
+# a working Internet connection on every run.
+- name: Check if Docker repo is already configured
+  ansible.builtin.stat:
+    path: /etc/apt/sources.list.d/docker.sources
+  register: docker_repo_stat
 
-# Retries: the VM has documented intermittent DNS/TCP issues
-# (docs/journal.md, OpenStack NAT/Neutron suspicion).
 - name: Add Docker official apt repository (GPG-verified, deb822)
   ansible.builtin.deb822_repository:
     name: docker
@@ -39,12 +41,14 @@
   retries: 3
   delay: 10
   until: docker_repo_result is success
+  when: not docker_repo_stat.stat.exists
 
 - name: Install Docker Engine and plugins
   ansible.builtin.apt:
     name: "{{ docker_packages }}"
     state: present
     update_cache: true
+    cache_valid_time: 3600
 
 - name: Harden Docker daemon (log rotation, live-restore)
   ansible.builtin.copy:

@@ -35,3 +35,6 @@ terraform/crash.log
 # ── Local session notes (not project deliverables) ───────
 .sessions/
 session-*.md
+
+# ── Personal command pipelines (local reference only) ────
+.commands/

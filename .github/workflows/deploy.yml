@@ -27,10 +27,8 @@ jobs:
       - name: Install SSH key
         run: |
           install -d -m 700 ~/.ssh
-          echo "$SSH_KEY" > ~/.ssh/openedx_ci_key
+          echo "$OPENEDX_SSH_KEY" > ~/.ssh/openedx_ci_key
           chmod 600 ~/.ssh/openedx_ci_key
-        env:
-          SSH_KEY: ${{ secrets.OPENEDX_SSH_KEY }}
 
       - name: Install Ansible
         run: |
@@ -46,6 +44,19 @@ jobs:
         working-directory: ansible
         run: ansible-galaxy collection install -r requirements.yml
 
-      - name: Run playbook
+      - name: Run playbook (vm_prep + security + docker)
         working-directory: ansible
-        run: ansible-playbook site.yml --diff
+        env:
+          ANSIBLE_SSH_ARGS: >-
+            -o ControlMaster=auto
+            -o ControlPersist=60s
+            -o ServerAliveInterval=30
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=accept-new
+            -o IdentitiesOnly=yes
+        run: |
+          ansible-playbook \
+            -i inventories/production/hosts.yml \
+            --tags vm_prep,security,docker \
+            --diff \
+            site.yml

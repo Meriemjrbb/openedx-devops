@@ -14,7 +14,7 @@ vm_prep_packages:
 
 # Minimum resources (informational check, does not fail the play — risk R3).
 vm_prep_min_ram_mb: 5500 # real VM has 6 GB
-vm_prep_min_disk_gb: 15 # real VM has 20 GB
+vm_prep_min_disk_gb: 10 # real VM has 20 GB (14 GB free after swap)
 
 # Reboot automatically if a kernel update requires it (risk R8).
 # true only on disposable local VMs — see inventory group_vars.
