@@ -38,3 +38,7 @@ session-*.md
 
 # ── Personal command pipelines (local reference only) ────
 .commands/
+.ansible/
+
+# Personal proof-of-work doc (not a deliverable)
+docs/dod.md

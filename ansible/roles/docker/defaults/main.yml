@@ -13,13 +13,23 @@ docker_apt_key_url: https://download.docker.com/linux/ubuntu/gpg
 docker_users:
   - "{{ ansible_user }}"
 
-# daemon.json hardening: log rotation + live-restore + registry mirror.
+# daemon.json hardening: log rotation + live-restore + registry mirror + TCP DNS.
 # mirror.gcr.io mitigates OpenStack NAT/TCP issues hitting Docker Hub directly.
+# dns-opts use-vc forces TCP/53 (UDP/53 to 8.8.8.8/1.1.1.1 is blocked on the
+# OpenStack VM — see docs/journal.md 18/07/2026).
 docker_daemon_options:
   log-driver: json-file
   log-opts:
     max-size: 10m
     max-file: "3"
   live-restore: true
+  ipv6: false
+  max-concurrent-downloads: 1
   registry-mirrors:
     - https://mirror.gcr.io
+  dns:
+    - 1.1.1.1
+  dns-opts:
+    - use-vc
+    - "attempts:3"
+    - "timeout:5"
